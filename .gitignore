@@ -1,0 +1,24 @@
+# Vivado Logs and Journals
+*.jou
+*.log
+*.str
+*.backup.log
+*.bgn
+*.drc
+*.rpx
+
+# Generated Directories (The heavy stuff)
+.Xil/
+*.runs/
+*.sim/
+*.ip_user_files/
+*.hw/
+*.cache/
+*.srcs/utils_1/
+
+# Simulation outputs
+*.wdb
+*.pb
+
+# Bitstreams (Optional: Keep this line if you WANT to save the .bit file)
+# *.bit
