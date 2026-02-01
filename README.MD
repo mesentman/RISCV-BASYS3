@@ -30,8 +30,8 @@ The design follows a modular structure connecting the Data Path and Control Unit
 ## 📸 Simulation Results
 Verified the data path using Vivado simulation waveforms before synthesis.
 
-![Simulation Waveform](path_to_simulation_screenshot.png)
-*Waveform showing the register file updating: x1=5, x2=3, x3=8.*
+![Simulation Waveform](<img width="1917" height="1083" alt="Image" src="https://github.com/user-attachments/assets/e6ec742f-f62b-4bae-9a85-d72bb1ae0f31" />)
+* Waveform showing the register file updating: x1=5, x2=3, x3=8.*
 
 ## 💻 How to Run
 1.  Clone this repository.
