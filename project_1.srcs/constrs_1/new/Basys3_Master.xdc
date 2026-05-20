@@ -41,6 +41,8 @@ set_property PACKAGE_PIN P1 [get_ports {DataAddr[14]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {DataAddr[14]}]
 set_property PACKAGE_PIN L1 [get_ports {DataAddr[15]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {DataAddr[15]}]
+set_property PACKAGE_PIN R2 [get_ports sw_stall]
+set_property IOSTANDARD LVCMOS33 [get_ports sw_stall]
 
 ## We are ignoring the upper 16 bits of output and the WriteData output
 ## Vivado might complain, so we can tell it to not worry about unassigned pins:
