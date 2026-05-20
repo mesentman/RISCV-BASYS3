@@ -1,16 +1,23 @@
 `timescale 1ns / 1ps
 
 module ProgramCounter(
-    input clk,
-    input reset,                // Active high reset (usually the center button)
-    input [31:0] NextPC,        // The address of the NEXT instruction
-    output reg [31:0] PC        // The address of the CURRENT instruction
+    input wire clk,                  
+    input wire reset,
+    input wire en,
+    input wire stall,                   
+    input [31:0] NextPC,
+    output reg [31:0] PC
     );
 
     always @(posedge clk or posedge reset) begin
-        if (reset)
-            PC <= 32'b0;        // Reset to address 0 on start
-        else
-            PC <= NextPC;       // Otherwise, move to the next address
+        if (reset) begin
+            PC <= 32'b0; 
+        end
+        else if (stall) begin          
+            PC <= PC;
+        end
+        else if (en) begin
+            PC <= NextPC;
+        end
     end
 endmodule
