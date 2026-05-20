@@ -6,7 +6,7 @@
 *.bgn
 *.drc
 *.rpx
-
+*.xpr
 # Generated Directories (The heavy stuff)
 .Xil/
 *.runs/
@@ -22,4 +22,3 @@
 
 # Bitstreams (Optional: Keep this line if you WANT to save the .bit file)
 # *.bit
-project_1.xpr
