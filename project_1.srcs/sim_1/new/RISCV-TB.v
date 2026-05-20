@@ -1,24 +1,3 @@
-
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 02/01/2026 11:03:04 AM
-// Design Name: 
-// Module Name: RISCV-TB
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
 `timescale 1ns / 1ps
 
 module RISCV_TB;
@@ -28,14 +7,14 @@ module RISCV_TB;
     reg reset;
 
     // Outputs from the CPU (for debugging)
-    wire [31:0] WriteData;
-    wire [31:0] DataAddr;
+    // FIXED: Changed to 16 bits to perfectly match RISCV_Top
+    wire [15:0] DataAddr; 
 
     // Instantiate the Unit Under Test (UUT)
     RISCV_Top uut (
         .clk(clk),
         .reset(reset),
-        .WriteData(WriteData),
+        // FIXED: Removed WriteData
         .DataAddr(DataAddr)
     );
 
@@ -51,8 +30,8 @@ module RISCV_TB;
         #20;
         reset = 0; // Release reset, CPU starts running!
 
-        // Let it run for 200ns
-        #200;
+        // Let it run for 2000ns (gives the divided clock time to tick)
+        #2000;
         
         // Stop simulation
         $finish;
