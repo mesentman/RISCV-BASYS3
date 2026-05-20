@@ -2,8 +2,6 @@
 
 A fully functional 32-bit RISC-V processor core implemented in Verilog and synthesized on a Digilent Basys 3 FPGA board. This processor executes a subset of the RV32I instruction set and successfully performs arithmetic operations on physical hardware.
 
-![Board Demo](path_to_your_board_photo_or_gif.gif)
-*(Add a photo or GIF of your board here showing the LEDs counting 5 -> 3 -> 8)*
 
 ## 🚀 Features
 * **Architecture:** 32-bit Single-Cycle RISC-V (Harvard Architecture).
