@@ -18,7 +18,9 @@ module RISCV_Top(
     wire [31:0] ReadData;
     wire [31:0] Result;
     wire Zero;
-    
+    wire [31:0] cache_mem_addr;
+    wire cache_stall;
+    wire final_stall = sw_stall | cache_stall;
     wire MemWrite, MemRead, ALUSrc, RegWrite, MemToReg, Branch;
     wire [1:0] ALUOp;
     wire [3:0] ALUControl;
@@ -39,14 +41,29 @@ module RISCV_Top(
         .clk(clk),         
         .reset(reset),
         .en(enable_tick),
-        .stall(sw_stall),   
+        .stall(final_stall),   
         .NextPC(PC_In),
         .PC(PC_Out)
     );
 
+    L1Cache icache (
+        .clk(clk),
+        .reset(reset),
+        
+        // CPU Side
+        .cpu_addr(PC_Out),          
+        .cpu_instr(Instr),          
+        .stall_cpu(cache_stall),    
+        
+        // Memory Side
+        .mem_addr(cache_mem_addr),  
+        .mem_instr(mem_instr_wire), 
+        .mem_ready(1'b1)            // Hardcoded to 1 (Instant memory for now)
+    );
+
     InstructionMemory imem (
-        .Address(PC_Out),
-        .Instruction(Instr)
+        .Address(cache_mem_addr),
+        .Instruction(mem_instr_wire)
     );
 
     ControlUnit control (
@@ -60,7 +77,7 @@ module RISCV_Top(
         .ALUOp(ALUOp)
     );
     
-    wire RegWire_gated = RegWrite & ~sw_stall;
+    wire RegWire_gated = RegWrite & ~final_stall;
     
     RegisterFile reg_file (
         .clk(clk),          
@@ -99,7 +116,7 @@ module RISCV_Top(
 
     DataMemory dmem (
         .clk(clk),       
-        .MemWrite(MemWrite & enable_tick & ~sw_stall), 
+        .MemWrite(MemWrite & enable_tick & ~final_stall), 
         .MemRead(MemRead),
         .Address(ALUResult),
         .WriteData(ReadData2),
