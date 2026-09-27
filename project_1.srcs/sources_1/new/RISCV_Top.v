@@ -1,14 +1,15 @@
 `timescale 1ns / 1ps
 
-module RISCV_Top(
+module RISCV_Top #(
+    parameter integer CPU_TICK_CYCLES = 16_777_216
+)(
     input clk,              
     input reset,            
     output [15:0] DataAddr,
     input wire sw_stall 
     );
-
     
-    wire enable_tick;       
+    wire enable_tick;
     wire [31:0] PC_In, PC_Out;
     wire [31:0] Instr;
     wire [31:0] ReadData1, ReadData2;
@@ -20,13 +21,14 @@ module RISCV_Top(
     wire Zero;
     wire [31:0] cache_mem_addr;
     wire cache_stall;
+    wire [31:0] mem_instr_wire; 
     wire final_stall = sw_stall | cache_stall;
-    wire MemWrite, MemRead, ALUSrc, RegWrite, MemToReg, Branch;
+    wire MemWrite, MemRead, ALUSrc, RegWrite, MemToReg, Branch, Jump;
     wire [1:0] ALUOp;
     wire [3:0] ALUControl;
 
     
-    ClockDivider clk_div (
+    ClockDivider #(.MAX_COUNT(CPU_TICK_CYCLES - 1)) clk_div (
         .clk(clk),
         .reset(reset),
         .enable_tick(enable_tick)
@@ -34,11 +36,11 @@ module RISCV_Top(
 
     wire [31:0] PCPlus4 = PC_Out + 4;
     wire [31:0] PCTarget = PC_Out + ImmExt;
-    wire PCSrc = Branch & Zero;
+    wire PCSrc = Jump | (Branch & Zero);
     assign PC_In = (PCSrc) ? PCTarget : PCPlus4;
 
     ProgramCounter pc_module (
-        .clk(clk),         
+        .clk(clk),
         .reset(reset),
         .en(enable_tick),
         .stall(final_stall),   
@@ -69,6 +71,7 @@ module RISCV_Top(
     ControlUnit control (
         .Opcode(Instr[6:0]),
         .Branch(Branch),
+        .Jump(Jump),
         .MemRead(MemRead),
         .MemToReg(MemToReg),
         .MemWrite(MemWrite),
@@ -77,10 +80,10 @@ module RISCV_Top(
         .ALUOp(ALUOp)
     );
     
-    wire RegWire_gated = RegWrite & ~final_stall;
+    wire RegWrite_gated = RegWrite & ~final_stall;
     
     RegisterFile reg_file (
-        .clk(clk),          
+        .clk(clk),
         .en(enable_tick),   
         .RegWrite(RegWrite_gated),
         .ReadReg1(Instr[19:15]),
@@ -115,7 +118,7 @@ module RISCV_Top(
     );
 
     DataMemory dmem (
-        .clk(clk),       
+        .clk(clk),
         .MemWrite(MemWrite & enable_tick & ~final_stall), 
         .MemRead(MemRead),
         .Address(ALUResult),
@@ -123,8 +126,10 @@ module RISCV_Top(
         .ReadData(ReadData)
     );
 
-    assign Result = (MemToReg) ? ReadData : ALUResult;
+    assign Result = Jump ? PCPlus4 : (MemToReg ? ReadData : ALUResult);
     
-    assign DataAddr = ALUResult[15:0];
+    //assign DataAddr = ALUResult[15:0];
+    
+    assign DataAddr = PC_Out[15:0];
 
 endmodule

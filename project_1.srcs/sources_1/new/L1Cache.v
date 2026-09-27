@@ -5,8 +5,8 @@ module L1Cache (
     input wire reset,
     
     input wire [31:0] cpu_addr,
-    output reg [31:0] cpu_instr,
-    output reg stall_cpu,
+    output wire [31:0] cpu_instr,
+    output wire stall_cpu,  
     
     output reg [31:0] mem_addr,
     input wire [31:0] mem_instr,
@@ -19,11 +19,11 @@ module L1Cache (
     reg [21:0] tag_array  [0:ENTRIES-1];
     reg        valid_array [0:ENTRIES-1];
     
-    localparam IDLESTATE    = 2'b00;
-    localparam STATE_FETCH  = 2'b01;
-    localparam STATE_UPDATE = 2'b10;
+    localparam IDLESTATE = 1'b0;
+    localparam STATE_FETCH = 1'b1;
     
-    reg [1:0] state;
+    reg state;
+    reg [31:0] miss_addr;
     integer i;
 
     wire [7:0]  index = cpu_addr[9:2];
@@ -31,10 +31,14 @@ module L1Cache (
     
     wire hit = valid_array[index] && (tag_array[index] == tag);
 
+    assign cpu_instr = hit ? data_array[index] : 32'h00000013;
+    assign stall_cpu = !hit;
+
     always @(posedge clk or posedge reset) begin
         if (reset) begin 
             state <= IDLESTATE;
-            stall_cpu <= 0;
+            mem_addr <= 0;
+            miss_addr <= 0;
             for (i = 0; i < ENTRIES; i = i + 1) begin
                 valid_array[i] <= 0;
             end
@@ -42,30 +46,22 @@ module L1Cache (
         else begin
             case (state)
                 IDLESTATE: begin
-                    if (hit) begin
-                        cpu_instr <= data_array[index]; 
-                        stall_cpu <= 0;
-                        state     <= IDLESTATE;
-                    end else begin
-                        stall_cpu <= 1;            
-                        state     <= STATE_FETCH;
+                    if (!hit) begin
+                        miss_addr <= cpu_addr;
+                        mem_addr <= cpu_addr;
+                        state <= STATE_FETCH;
                     end
                 end
 
                 STATE_FETCH: begin
-                    mem_addr <= cpu_addr;          
+                    // mem_addr was registered on the preceding clock edge.
+                    // mem_ready means mem_instr is valid for this request.
                     if (mem_ready) begin
-                        state <= STATE_UPDATE;
-                    end else begin
-                        state <= STATE_FETCH;      
+                        data_array[miss_addr[9:2]] <= mem_instr;
+                        tag_array[miss_addr[9:2]] <= miss_addr[31:10];
+                        valid_array[miss_addr[9:2]] <= 1'b1;
+                        state <= IDLESTATE;
                     end
-                end
-
-                STATE_UPDATE: begin
-                    data_array[index]  <= mem_instr; 
-                    tag_array[index]   <= tag;
-                    valid_array[index] <= 1'b1;
-                    state <= IDLESTATE;            
                 end
             endcase
         end

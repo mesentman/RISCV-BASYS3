@@ -3,6 +3,7 @@
 module ControlUnit(
     input [6:0] Opcode,       // The 7-bit opcode from Instruction[6:0]
     output reg Branch,        // Tell the PC logic we might branch
+    output reg Jump,          // JAL selects PC-relative target and writes PC+4
     output reg MemRead,       // Tell Data Memory to read
     output reg MemToReg,      // 1=Write from Memory, 0=Write from ALU
     output reg [1:0] ALUOp,   // 2-bit code to tell ALU Decoder what to do
@@ -13,7 +14,7 @@ module ControlUnit(
 
     always @(*) begin
         // Initialize everything to 0 to prevent latches
-        Branch = 0; MemRead = 0; MemToReg = 0; MemWrite = 0; ALUSrc = 0; RegWrite = 0; ALUOp = 2'b00;
+        Branch = 0; Jump = 0; MemRead = 0; MemToReg = 0; MemWrite = 0; ALUSrc = 0; RegWrite = 0; ALUOp = 2'b00;
 
         case(Opcode)
             // R-Type (ADD, SUB, AND, OR, etc.)
@@ -49,6 +50,11 @@ module ControlUnit(
             7'b1100011: begin
                 Branch = 1;
                 ALUOp = 2'b01; // Force SUB (Comparison)
+            end
+
+            7'b1101111: begin // JAL
+                Jump = 1;
+                RegWrite = 1;
             end
         endcase
     end

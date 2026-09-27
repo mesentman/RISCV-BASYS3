@@ -1,6 +1,8 @@
 `timescale 1ns / 1ps
 
-module ClockDivider(
+module ClockDivider #(
+    parameter integer MAX_COUNT = 16_777_215
+)(
     input clk,
     input reset,
     output reg enable_tick
@@ -10,8 +12,6 @@ module ClockDivider(
     reg [26:0] count; //
     
     
-    localparam MAX_COUNT = 5; 
-
     always @(posedge clk or posedge reset) begin
         if (reset) begin
             count <= 0;

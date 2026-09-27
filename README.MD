@@ -6,8 +6,8 @@ A fully functional 32-bit RISC-V processor core implemented in Verilog and synth
 ## 🚀 Features
 * **Architecture:** 32-bit Single-Cycle RISC-V (Harvard Architecture).
 * **ISA Subset:** RV32I (ADD, ADDI, BEQ, LW, SW, etc.).
-* **Hardware Output:** Mapped ALU results to board LEDs for visual debugging.
-* **Clock Management:** Custom Clock Divider to slow the 100MHz system clock to 1Hz for human-observable execution steps.
+* **Hardware Output:** Mapped the low program-counter bits to board LEDs for visual debugging.
+* **Clock Management:** A clock-enable pulse advances the CPU about 6 times per second on the 100 MHz board clock. The cache services misses on the full board clock.
 
 ## 🛠️ Hardware & Tools
 * **FPGA Board:** Digilent Basys 3 (Artix-7 XC7A35T).
@@ -34,15 +34,19 @@ Verified the data path using Vivado simulation waveforms before synthesis.
 ## 💻 How to Run
 1.  Clone this repository.
 2.  Open **Vivado** and create a new project targeting the **Basys 3**.
-3.  Add all `.v` files from the `src` folder.
-4.  Add the `Basys3_Master.xdc` constraints file.
-5.  Run **Synthesis**, **Implementation**, and **Generate Bitstream**.
-6.  Program the device via USB.
+3.  Add all design `.v` files from `project_1.srcs/sources_1/new/` and set `RISCV_Top` as the design top.
+4.  Add `project_1.srcs/constrs_1/new/Basys3_Master.xdc`.
+5.  Add the testbenches in `project_1.srcs/sim_1/new/`. Run `tb_L1Cache` and `RISCV_TB` separately as simulation tops. Each prints `PASS` or stops with `$fatal`.
+6.  Run **Synthesis**, **Implementation**, and **Generate Bitstream**. Program the device via USB.
 
 ## 📝 Test Program
 The processor is currently hardcoded with this assembly sequence to demonstrate functionality:
 
 ```assembly
-addi x1, x0, 5    ; Load 5 into register x1
-addi x2, x0, 3    ; Load 3 into register x2
-add  x3, x1, x2   ; x3 = 5 + 3 = 8
+addi x1, x0, 0    ; Clear counter
+addi x2, x0, 1    ; Set increment
+add  x1, x1, x2   ; Increment counter
+jal  x0, -4       ; Loop back to the add
+```
+
+The LEDs currently show the low 16 bits of the program counter (`DataAddr`). The instruction cache is direct-mapped with 256 one-word lines. For a future synchronous or external memory, assert `mem_ready` only when `mem_instr` is valid for the registered `mem_addr`.

@@ -31,16 +31,18 @@ module InstructionMemory(
     reg [31:0] memory [63:0];
 
     initial begin
-        // This is where you load your program!
-        // You can load a hex file using $readmemh, or hardcode simpler tests.
+        // memory[0]: addi x1, x0, 0   -> Clear x1 (our LED counter)
+        memory[0] = 32'h00000093; 
         
-        memory[0] = 32'h00500093; 
+        // memory[1]: addi x2, x0, 1   -> Load 1 into x2 (our increment value)
+        memory[1] = 32'h00100113;
         
-        memory[1] = 32'h00300113;
+        // memory[2]: add x1, x1, x2   -> x1 = x1 + x2 (Increment counter)
+        memory[2] = 32'h002080B3;
         
-        memory[2] = 32'h002081B3;
-        
-        memory[3] = 32'h00000063;
+        // memory[3]: jal x0, -4       -> Jump back to memory[2] (PC resets to 8)
+        // This keeps adding 1 to x1 over and over again!
+        memory[3] = 32'hffdff06f;
     end
 
     
